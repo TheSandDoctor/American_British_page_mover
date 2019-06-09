@@ -6,6 +6,7 @@ from mwclient import errors
 
 name_from = ""
 name_to = ""
+switching_from_to = {}
 
 def call_home(site):
     #page = site.Pages['User:' + config.get('enwiki','username') + "/status"]
@@ -25,7 +26,9 @@ def move_page(old_title,new_title):
 
 def move_cat_contents(old_title, new_title, site):
     text = site.Pages[old_title] # check category page itself
-    text = text.replace(old_title,new_title)
+    global switching_from_to
+    for prev, to in switching_from_to.items(): # https://stackoverflow.com/questions/14156473/can-you-write-a-str-replace-using-dictionary-values-in-python
+        text = text.replace(prev,to)
     for page in site.Categories[old_title[:9]]: # go through category contents
         text = page.text()
         text = text.replace(old_title, new_title)
@@ -55,9 +58,14 @@ if __name__ == "__main__":
         match = re.findall(r"\* \[\[:(.*)\]\] -> \[\[:(.*)\]\]",text)
         counter = 0
         fh = open("cats_british_american_results.txt","w")
+        global switching_from_to
         for mat in match:
-            global name_from = mat[0]
-            global name_to = mat[1]
+            switching_from_to[mat[0]] = mat[1] # need this list first
+        for mat in match:
+            global name_from
+            global name_to
+            name_from = mat[0]
+            name_to = mat[1]
 
             #   continue
             if not call_home(site):#config):
