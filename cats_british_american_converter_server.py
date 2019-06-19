@@ -41,6 +41,21 @@ def move_cat_contents(old_title, new_title, site):
             print('Could not edit ' + page.page_title + ' due to protection')
             continue
 
+def rename_backlinks(old_title, new_title, site):
+    page = site.Pages[old_title]
+    for p in page.backlinks():
+        text = p.text()
+        text = text.replace(old_title, new_title)
+        try:
+            page.save(text, summary="[[WP:Bots/Requests for approval/TheSandBot 4|Task 4]]: Updating references from [[:" + old_title + "]] to [[:" + new_title + "]]")
+        except [[EditError]]:
+            print("Error")
+            continue
+        except [[ProtectedPageError]]:
+            print('Could not edit ' + page.page_title + ' due to protection')
+            continue
+
+
 
 if __name__ == "__main__":
     try:
@@ -72,6 +87,7 @@ if __name__ == "__main__":
                 raise ValueError("Kill switch on-wiki is false. Terminating program.")
             elif move_page(mat[0],mat[1]):
                 move_cat_contents(mat[0], mat[1], site)
+                rename_backlinks(mat[0], mat[1], site)
                 fh.write("Converted " + mat[0] + " ----> " + mat[1] + "\n")
                 print("Converted " + mat[0] + " ----> " + mat[1] + "\n")
             #counter +=1
